@@ -13,6 +13,7 @@
     "@google/generative-ai": "^0.24.1",
     "@tailwindcss/vite": "^4.1.12",
     "firebase": "^12.1.0",
+    "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

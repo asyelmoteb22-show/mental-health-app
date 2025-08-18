@@ -104,7 +104,14 @@ const App = () => {
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-              <h1 className="text-xl sm:text-2xl font-bold text-rose-600 ml-2 lg:ml-0">MindfulMe</h1>
+              <div className="flex items-center ml-2 lg:ml-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-rose-600">
+                  सुकून
+                </h1>
+                <span className="hidden sm:inline text-sm text-gray-500 ml-3">
+                  Your Mental Wellness Companion
+                </span>
+              </div>
             </div>
 
             {/* Desktop Navigation */}

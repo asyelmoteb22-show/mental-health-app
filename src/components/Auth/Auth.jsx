@@ -150,11 +150,11 @@ const Auth = ({ onAuth }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-rose-600 mb-2 text-center">
+      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold text-rose-600 mb-2 text-center">
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h1>
-        <p className="text-gray-600 text-center mb-6">
+        <p className="text-sm sm:text-base text-gray-600 text-center mb-6">
           {isLogin 
             ? 'Login to continue your mental wellness journey' 
             : 'Start your journey to better mental health'}
@@ -176,14 +176,14 @@ const Auth = ({ onAuth }) => {
                   setEmail(e.target.value);
                   setValidationErrors({ ...validationErrors, email: '' });
                 }}
-                className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                className={`w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border ${
                   validationErrors.email ? 'border-red-500' : 'border-rose-200'
                 } focus:outline-none focus:border-rose-400`}
                 disabled={loading}
               />
             </div>
             {validationErrors.email && (
-              <p className="text-red-500 text-sm mt-1 flex items-center">
+              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                 <AlertCircle size={14} className="mr-1" />
                 {validationErrors.email}
               </p>
@@ -205,7 +205,7 @@ const Auth = ({ onAuth }) => {
                   setPassword(e.target.value);
                   setValidationErrors({ ...validationErrors, password: '' });
                 }}
-                className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
+                className={`w-full pl-10 pr-12 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border ${
                   validationErrors.password ? 'border-red-500' : 'border-rose-200'
                 } focus:outline-none focus:border-rose-400`}
                 disabled={loading}
@@ -219,7 +219,7 @@ const Auth = ({ onAuth }) => {
               </button>
             </div>
             {validationErrors.password && (
-              <p className="text-red-500 text-sm mt-1 flex items-center">
+              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                 <AlertCircle size={14} className="mr-1" />
                 {validationErrors.password}
               </p>
@@ -262,7 +262,7 @@ const Auth = ({ onAuth }) => {
                     setConfirmPassword(e.target.value);
                     setValidationErrors({ ...validationErrors, confirmPassword: '' });
                   }}
-                  className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
+                  className={`w-full pl-10 pr-12 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border ${
                     validationErrors.confirmPassword ? 'border-red-500' : 'border-rose-200'
                   } focus:outline-none focus:border-rose-400`}
                   disabled={loading}
@@ -276,7 +276,7 @@ const Auth = ({ onAuth }) => {
                 </button>
               </div>
               {validationErrors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1 flex items-center">
+                <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                   <AlertCircle size={14} className="mr-1" />
                   {validationErrors.confirmPassword}
                 </p>
@@ -287,7 +287,7 @@ const Auth = ({ onAuth }) => {
           {/* Password Requirements (Signup only) */}
           {!isLogin && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm font-medium text-blue-900 mb-2">Password Requirements:</p>
+              <p className="text-xs sm:text-sm font-medium text-blue-900 mb-2">Password Requirements:</p>
               <ul className="text-xs text-blue-800 space-y-1">
                 <li className={password.length >= 8 ? 'line-through' : ''}>
                   • At least 8 characters
@@ -310,9 +310,9 @@ const Auth = ({ onAuth }) => {
           
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start">
-              <AlertCircle size={20} className="mr-2 flex-shrink-0 mt-0.5" />
-              <p className="text-sm">{error}</p>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg flex items-start">
+              <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm">{error}</p>
             </div>
           )}
           
@@ -320,7 +320,7 @@ const Auth = ({ onAuth }) => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`w-full py-3 rounded-lg transition-colors font-medium ${
+            className={`w-full py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors font-medium ${
               loading 
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-rose-500 text-white hover:bg-rose-600'
@@ -331,7 +331,7 @@ const Auth = ({ onAuth }) => {
         </div>
         
         {/* Toggle Login/Signup */}
-        <p className="text-center mt-6 text-gray-600">
+        <p className="text-center mt-6 text-sm sm:text-base text-gray-600">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={toggleMode}
@@ -345,7 +345,7 @@ const Auth = ({ onAuth }) => {
         {/* Forgot Password (Login only) */}
         {isLogin && (
           <p className="text-center mt-2">
-            <button className="text-sm text-gray-500 hover:text-gray-700">
+            <button className="text-xs sm:text-sm text-gray-500 hover:text-gray-700">
               Forgot your password?
             </button>
           </p>

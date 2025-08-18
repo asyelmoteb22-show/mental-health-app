@@ -25,7 +25,6 @@ const JournalTab = ({ user }) => {
         setEntries(result.documents);
       } else {
         console.error('Error loading entries:', result.error);
-        alert('Error loading entries. Please refresh the page.');
       }
     } catch (error) {
       console.error('Error loading entries:', error);
@@ -44,7 +43,6 @@ const JournalTab = ({ user }) => {
     try {
       const mood = analyzeMood(newEntry);
       
-      // Save journal entry
       const journalData = {
         userId: user.uid,
         content: newEntry,
@@ -55,7 +53,6 @@ const JournalTab = ({ user }) => {
       const journalResult = await dbFunctions.add('journals', journalData);
       
       if (journalResult.success) {
-        // Save mood data separately for mood tracking
         const moodData = {
           userId: user.uid,
           mood: mood,
@@ -65,11 +62,8 @@ const JournalTab = ({ user }) => {
         
         await dbFunctions.add('moods', moodData);
         
-        // Clear form
         setNewEntry('');
         setSelectedQuestion('');
-        
-        // Reload entries
         await loadEntries();
         
         alert('Entry saved successfully!');
@@ -91,11 +85,9 @@ const JournalTab = ({ user }) => {
       const result = await dbFunctions.delete('journals', entryId);
       
       if (result.success) {
-        // Remove from local state immediately for better UX
         setEntries(entries.filter(entry => entry.id !== entryId));
       } else {
         alert('Error deleting entry. Please try again.');
-        // Reload to ensure sync
         await loadEntries();
       }
     } catch (error) {
@@ -104,11 +96,9 @@ const JournalTab = ({ user }) => {
     }
   };
 
-  // Format Firebase timestamp
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'Unknown date';
     
-    // Handle Firebase Timestamp
     if (timestamp.seconds) {
       const date = new Date(timestamp.seconds * 1000);
       return {
@@ -117,7 +107,6 @@ const JournalTab = ({ user }) => {
       };
     }
     
-    // Handle regular date string
     const date = new Date(timestamp);
     return {
       date: date.toLocaleDateString(),
@@ -126,15 +115,18 @@ const JournalTab = ({ user }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-rose-600 mb-4">Daily Reflection Questions</h2>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Daily Questions */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+          Daily Reflection Questions
+        </h2>
         <div className="space-y-2">
           {dailyQuestions.map((question, index) => (
             <button
               key={index}
               onClick={() => setSelectedQuestion(question)}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
+              className={`w-full text-left p-3 sm:p-4 rounded-lg transition-colors text-sm sm:text-base ${
                 selectedQuestion === question 
                   ? 'bg-rose-100 text-rose-700' 
                   : 'hover:bg-rose-50'
@@ -146,22 +138,27 @@ const JournalTab = ({ user }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-rose-600 mb-4">Write Your Entry</h2>
+      {/* Write Entry */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+          Write Your Entry
+        </h2>
         {selectedQuestion && (
-          <p className="text-gray-600 mb-3 italic">"{selectedQuestion}"</p>
+          <p className="text-sm sm:text-base text-gray-600 mb-3 italic">
+            "{selectedQuestion}"
+          </p>
         )}
         <textarea
           value={newEntry}
           onChange={(e) => setNewEntry(e.target.value)}
           placeholder="Share your thoughts..."
-          className="w-full h-32 p-4 border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400 resize-none"
+          className="w-full h-32 sm:h-40 p-3 sm:p-4 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400 resize-none"
           disabled={saving}
         />
         <button
           onClick={saveEntry}
           disabled={!newEntry.trim() || saving}
-          className={`mt-4 px-6 py-2 rounded-lg transition-colors ${
+          className={`mt-3 sm:mt-4 px-4 sm:px-6 py-2 text-sm sm:text-base rounded-lg transition-colors ${
             newEntry.trim() && !saving
               ? 'bg-rose-500 text-white hover:bg-rose-600' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -171,33 +168,42 @@ const JournalTab = ({ user }) => {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-rose-600 mb-4">Your Entries</h2>
+      {/* Entries List */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+          Your Entries
+        </h2>
         {loading ? (
-          <p className="text-gray-500">Loading entries...</p>
+          <p className="text-gray-500 text-sm sm:text-base">Loading entries...</p>
         ) : entries.length === 0 ? (
-          <p className="text-gray-500">No entries yet. Start journaling to see your thoughts here!</p>
+          <p className="text-gray-500 text-sm sm:text-base">
+            No entries yet. Start journaling to see your thoughts here!
+          </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {entries.map((entry) => {
               const timestamp = formatTimestamp(entry.createdAt);
               return (
-                <div key={entry.id} className="border border-rose-100 rounded-lg p-4">
+                <div key={entry.id} className="border border-rose-100 rounded-lg p-3 sm:p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs sm:text-sm text-gray-500">
                       {timestamp.date} at {timestamp.time}
                     </span>
                     <button
                       onClick={() => deleteEntry(entry.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
+                      className="text-red-500 hover:text-red-700 transition-colors p-1"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} className="sm:w-5 sm:h-5" />
                     </button>
                   </div>
                   {entry.question && (
-                    <p className="text-sm text-gray-600 italic mb-2">"{entry.question}"</p>
+                    <p className="text-xs sm:text-sm text-gray-600 italic mb-2">
+                      "{entry.question}"
+                    </p>
                   )}
-                  <p className="text-gray-800 whitespace-pre-wrap">{entry.content}</p>
+                  <p className="text-sm sm:text-base text-gray-800 whitespace-pre-wrap">
+                    {entry.content}
+                  </p>
                 </div>
               );
             })}

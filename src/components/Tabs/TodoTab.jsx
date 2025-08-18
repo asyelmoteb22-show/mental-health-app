@@ -64,7 +64,6 @@ const TodoTab = ({ user }) => {
       });
       
       if (result.success) {
-        // Update local state for immediate UI feedback
         setTodos(todos.map(todo => 
           todo.id === todoId 
             ? { ...todo, completed: !currentStatus }
@@ -72,7 +71,7 @@ const TodoTab = ({ user }) => {
         ));
       } else {
         alert('Error updating task. Please try again.');
-        await loadTodos(); // Reload to ensure sync
+        await loadTodos();
       }
     } catch (error) {
       console.error('Error toggling todo:', error);
@@ -86,7 +85,6 @@ const TodoTab = ({ user }) => {
       const result = await dbFunctions.delete('todos', todoId);
       
       if (result.success) {
-        // Remove from local state immediately
         setTodos(todos.filter(todo => todo.id !== todoId));
       } else {
         alert('Error deleting task. Please try again.');
@@ -120,9 +118,12 @@ const TodoTab = ({ user }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-rose-600 mb-4">Add New Task</h2>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Add New Task */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+          Add New Task
+        </h2>
         <div className="flex gap-2">
           <input
             type="text"
@@ -130,39 +131,42 @@ const TodoTab = ({ user }) => {
             onChange={(e) => setNewTodo(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addTodo()}
             placeholder="What needs to be done?"
-            className="flex-1 px-4 py-2 border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
+            className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
           />
           <button
             onClick={addTodo}
-            className="px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+            className="px-4 sm:px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
           >
-            <Plus size={20} />
+            <Plus size={18} className="sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-lg text-center">
-          <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
-          <div className="text-sm text-gray-600">Total Tasks</div>
+      {/* Statistics */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-lg text-center">
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">{stats.total}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Total Tasks</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-lg text-center">
-          <div className="text-2xl font-bold text-orange-600">{stats.active}</div>
-          <div className="text-sm text-gray-600">Active</div>
+        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-lg text-center">
+          <div className="text-xl sm:text-2xl font-bold text-orange-600">{stats.active}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Active</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-lg text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-          <div className="text-sm text-gray-600">Completed</div>
+        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-lg text-center">
+          <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.completed}</div>
+          <div className="text-xs sm:text-sm text-gray-600">Completed</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <div className="flex gap-2 mb-4">
+      {/* Tasks List */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        {/* Filter Buttons */}
+        <div className="flex gap-2 mb-3 sm:mb-4">
           {['all', 'active', 'completed'].map((filterOption) => (
             <button
               key={filterOption}
               onClick={() => setFilter(filterOption)}
-              className={`px-4 py-2 rounded-lg capitalize transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-lg capitalize transition-colors ${
                 filter === filterOption
                   ? 'bg-rose-500 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -173,10 +177,11 @@ const TodoTab = ({ user }) => {
           ))}
         </div>
 
+        {/* Todo List */}
         {loading ? (
-          <p className="text-gray-500 text-center py-8">Loading tasks...</p>
+          <p className="text-gray-500 text-center py-8 text-sm sm:text-base">Loading tasks...</p>
         ) : filteredTodos.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-gray-500 text-center py-8 text-sm sm:text-base">
             {filter === 'completed' ? 'No completed tasks yet!' : 
              filter === 'active' ? 'No active tasks. Great job!' : 
              'No tasks yet. Add one above!'}
@@ -186,16 +191,16 @@ const TodoTab = ({ user }) => {
             {filteredTodos.map((todo) => (
               <div
                 key={todo.id}
-                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <input
                   type="checkbox"
                   checked={todo.completed}
                   onChange={() => toggleTodo(todo.id, todo.completed)}
-                  className="w-5 h-5 text-rose-500 rounded focus:ring-rose-500"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 rounded focus:ring-rose-500"
                 />
                 <span
-                  className={`flex-1 ${
+                  className={`flex-1 text-sm sm:text-base ${
                     todo.completed
                       ? 'text-gray-400 line-through'
                       : 'text-gray-800'
@@ -203,14 +208,14 @@ const TodoTab = ({ user }) => {
                 >
                   {todo.text}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 hidden sm:inline">
                   {formatDate(todo.createdAt)}
                 </span>
                 <button
                   onClick={() => deleteTodo(todo.id)}
-                  className="text-red-500 hover:text-red-700 transition-colors"
+                  className="text-red-500 hover:text-red-700 transition-colors p-1"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </button>
               </div>
             ))}

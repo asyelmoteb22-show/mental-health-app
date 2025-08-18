@@ -8,7 +8,6 @@ const RemindersTab = ({ user }) => {
   const [isEnabled, setIsEnabled] = useState(false);
   const [lastNotification, setLastNotification] = useState(null);
 
-  // Load saved reminder settings
   useEffect(() => {
     const savedReminder = localStorage.getItem(`reminder_${user.uid}`);
     if (savedReminder) {
@@ -19,14 +18,12 @@ const RemindersTab = ({ user }) => {
     }
   }, [user.uid]);
 
-  // Check for notification permission
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
   }, []);
 
-  // Set up reminder checking
   useEffect(() => {
     if (!isEnabled) return;
 
@@ -38,7 +35,7 @@ const RemindersTab = ({ user }) => {
         sendNotification();
         setLastNotification(now.toDateString());
       }
-    }, 60000); // Check every minute
+    }, 60000);
 
     return () => clearInterval(checkReminder);
   }, [isEnabled, reminderTime, lastNotification]);
@@ -47,7 +44,7 @@ const RemindersTab = ({ user }) => {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('MindfulMe Reminder', {
         body: reminderMessage,
-        icon: '/icon.png', // You'd add an icon to your public folder
+        icon: '/icon.png',
         badge: '/badge.png'
       });
     }
@@ -81,15 +78,17 @@ const RemindersTab = ({ user }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Reminder Settings */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-rose-600 mb-4">Daily Reminder Settings</h2>
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+          Daily Reminder Settings
+        </h2>
         
         <div className="space-y-4">
           {/* Enable/Disable Toggle */}
           <div className="flex items-center justify-between">
-            <label className="font-medium">Enable Daily Reminder</label>
+            <label className="font-medium text-sm sm:text-base">Enable Daily Reminder</label>
             <button
               onClick={() => setIsEnabled(!isEnabled)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -106,53 +105,55 @@ const RemindersTab = ({ user }) => {
 
           {/* Time Picker */}
           <div>
-            <label className="block font-medium mb-2">Reminder Time</label>
+            <label className="block font-medium mb-2 text-sm sm:text-base">Reminder Time</label>
             <div className="flex items-center gap-2">
-              <Clock className="text-rose-500" size={20} />
+              <Clock className="text-rose-500" size={18} />
               <input
                 type="time"
                 value={reminderTime}
                 onChange={(e) => setReminderTime(e.target.value)}
-                className="px-4 py-2 border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
               />
             </div>
           </div>
 
           {/* Message */}
           <div>
-            <label className="block font-medium mb-2">Reminder Message</label>
+            <label className="block font-medium mb-2 text-sm sm:text-base">Reminder Message</label>
             <textarea
               value={reminderMessage}
               onChange={(e) => setReminderMessage(e.target.value)}
               placeholder="Enter your reminder message"
-              className="w-full px-4 py-2 border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400 resize-none h-20"
+              className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400 resize-none h-20"
             />
           </div>
 
           {/* Save Button */}
           <button
             onClick={saveReminder}
-            className="w-full px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors flex items-center justify-center gap-2"
+            className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <Save size={20} />
+            <Save size={18} className="sm:w-5 sm:h-5" />
             Save Reminder Settings
           </button>
 
           {/* Test Notification */}
           <button
             onClick={testNotification}
-            className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+            className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <Bell size={20} />
+            <Bell size={18} className="sm:w-5 sm:h-5" />
             Test Notification
           </button>
         </div>
       </div>
 
       {/* Instructions */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h2 className="text-xl font-semibold text-rose-600 mb-4">How Reminders Work</h2>
-        <div className="space-y-3 text-gray-600">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+          How Reminders Work
+        </h2>
+        <div className="space-y-2 sm:space-y-3 text-gray-600 text-sm sm:text-base">
           <p>• Set a daily time for your mindfulness reminder</p>
           <p>• Keep this browser tab open to receive notifications</p>
           <p>• Make sure notifications are enabled in your browser</p>
@@ -162,9 +163,11 @@ const RemindersTab = ({ user }) => {
       </div>
 
       {/* Notification Status */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="font-semibold text-gray-700 mb-2">Notification Status</h3>
-        <p className="text-sm text-gray-600">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+        <h3 className="font-semibold text-gray-700 mb-2 text-sm sm:text-base">
+          Notification Status
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600">
           {typeof Notification !== 'undefined' ? (
             Notification.permission === 'granted' ? (
               <span className="text-green-600">✓ Notifications are enabled</span>

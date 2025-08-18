@@ -12,13 +12,11 @@ const ChatTab = ({ user }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Load saved bot name and messages on mount
   useEffect(() => {
     const savedBotName = localStorage.getItem(`botName_${user.uid}`);
     if (savedBotName) {
       setBotName(savedBotName);
       setShowNameInput(false);
-      // Add initial greeting
       const greeting = {
         id: 'greeting',
         text: `Hello! I'm ${savedBotName}, your supportive companion. I'm here to listen, offer encouragement, and help you navigate your thoughts and feelings. How are you feeling today?`,
@@ -30,7 +28,6 @@ const ChatTab = ({ user }) => {
     loadChatHistory();
   }, [user.uid]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -43,7 +40,6 @@ const ChatTab = ({ user }) => {
     try {
       const result = await dbFunctions.getUserDocuments('chats', user.uid);
       if (result.success && result.documents.length > 0) {
-        // Don't override if we already have messages
         if (messages.length === 0) {
           setMessages(result.documents);
         }
@@ -61,7 +57,6 @@ const ChatTab = ({ user }) => {
     localStorage.setItem(`botName_${user.uid}`, botName);
     setShowNameInput(false);
     
-    // Add initial greeting
     const greeting = {
       id: Date.now(),
       text: `Hello! I'm ${botName}, your supportive companion. I'm here to listen, offer encouragement, and help you navigate your thoughts and feelings. How are you feeling today?`,
@@ -76,7 +71,6 @@ const ChatTab = ({ user }) => {
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
     
-    // Add user message
     const userMessage = {
       id: Date.now(),
       text: inputMessage,
@@ -93,10 +87,8 @@ const ChatTab = ({ user }) => {
     setIsLoading(true);
     
     try {
-      // Create context from conversation history
       let conversationContext = SYSTEM_PROMPT + `\n\nYou are ${botName}, a caring AI companion.\n\n`;
       
-      // Add last few messages for context (limit to prevent token overflow)
       const recentMessages = messages.slice(-6);
       recentMessages.forEach(msg => {
         if (msg.sender === 'user') {
@@ -108,12 +100,10 @@ const ChatTab = ({ user }) => {
       
       conversationContext += `User: ${userInput}\n${botName}: `;
       
-      // Get AI response using generateContent (not startChat)
       const result = await chatModel.generateContent(conversationContext);
       const response = await result.response;
       const botText = response.text();
       
-      // Add bot message
       const botMessage = {
         id: Date.now() + 1,
         text: botText,
@@ -128,15 +118,12 @@ const ChatTab = ({ user }) => {
     } catch (error) {
       console.error('Error getting AI response:', error);
       
-      // Specific error handling
       let errorText = "I'm having trouble connecting right now. ";
       
       if (error.message?.includes('API_KEY_INVALID')) {
         errorText = "There's an issue with the API configuration. Please check your API key.";
       } else if (error.message?.includes('RATE_LIMIT_EXCEEDED')) {
         errorText = "We've hit the rate limit. Please wait a moment before sending another message.";
-      } else if (error.message?.includes('Cannot read properties of null')) {
-        errorText = "Connection error. Please try again.";
       }
       
       const errorMessage = {
@@ -169,14 +156,12 @@ const ChatTab = ({ user }) => {
     if (!confirm('Are you sure you want to clear your chat history?')) return;
     
     try {
-      // Delete all messages from Firebase
       for (const message of messages) {
         if (message.id && message.id !== 'greeting') {
           await dbFunctions.delete('chats', message.id);
         }
       }
       
-      // Reset to just greeting
       const greeting = {
         id: 'greeting',
         text: `Hello! I'm ${botName}, your supportive companion. I'm here to listen, offer encouragement, and help you navigate your thoughts and feelings. How are you feeling today?`,
@@ -190,25 +175,27 @@ const ChatTab = ({ user }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Bot Name Setup */}
       {showNameInput && (
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h2 className="text-xl font-semibold text-rose-600 mb-4">Personalize Your Support Companion</h2>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+          <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
+            Personalize Your Support Companion
+          </h2>
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
             Give your AI companion a name that feels comfortable to you. This helps create a more personal connection.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={botName}
               onChange={(e) => setBotName(e.target.value)}
               placeholder="Give your companion a name"
-              className="flex-1 px-4 py-2 border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
+              className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
             />
             <button
               onClick={saveBotName}
-              className="px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+              className="px-4 sm:px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors text-sm sm:text-base"
             >
               Start Chat
             </button>
@@ -218,14 +205,16 @@ const ChatTab = ({ user }) => {
 
       {/* Conversation Starters */}
       {!showNameInput && messages.length <= 1 && (
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-rose-600 mb-4">How can {botName} help you today?</h3>
-          <div className="grid grid-cols-2 gap-2">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+          <h3 className="text-base sm:text-lg font-semibold text-rose-600 mb-3 sm:mb-4">
+            How can {botName} help you today?
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {conversationStarters.map((starter, index) => (
               <button
                 key={index}
                 onClick={() => handleConversationStarter(starter)}
-                className="text-left p-3 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors text-sm"
+                className="text-left p-2.5 sm:p-3 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors text-sm"
               >
                 {starter}
               </button>
@@ -236,31 +225,33 @@ const ChatTab = ({ user }) => {
 
       {/* Chat Interface */}
       {!showNameInput && (
-        <div className="bg-white rounded-xl shadow-lg flex flex-col h-[500px]">
+        <div className="bg-white rounded-xl shadow-lg flex flex-col h-[400px] sm:h-[500px] lg:h-[600px]">
           {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <Bot className="text-rose-600" size={24} />
-              <h2 className="text-lg font-semibold">{botName}</h2>
-              <span className="text-xs text-gray-500">AI Support Companion</span>
+              <Bot className="text-rose-600" size={20} />
+              <h2 className="text-base sm:text-lg font-semibold">{botName}</h2>
+              <span className="text-xs text-gray-500 hidden sm:inline">AI Support Companion</span>
             </div>
             <button
               onClick={clearChat}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-xs sm:text-sm text-gray-500 hover:text-gray-700"
             >
-              Clear Chat
+              Clear
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex gap-2 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className={`flex gap-2 max-w-[85%] sm:max-w-[80%] lg:max-w-[70%] ${
+                  message.sender === 'user' ? 'flex-row-reverse' : ''
+                }`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     message.sender === 'user' ? 'bg-rose-500' : 'bg-gray-200'
                   }`}>
                     {message.sender === 'user' ? (
@@ -270,13 +261,13 @@ const ChatTab = ({ user }) => {
                     )}
                   </div>
                   <div
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-3 sm:px-4 py-2 rounded-lg ${
                       message.sender === 'user'
                         ? 'bg-rose-500 text-white'
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.text}</p>
+                    <p className="text-sm sm:text-base whitespace-pre-wrap">{message.text}</p>
                     <p className={`text-xs mt-1 ${
                       message.sender === 'user' ? 'text-rose-200' : 'text-gray-500'
                     }`}>
@@ -304,7 +295,7 @@ const ChatTab = ({ user }) => {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-3 sm:p-4 border-t border-gray-200">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -312,19 +303,19 @@ const ChatTab = ({ user }) => {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
                 placeholder="Share what's on your mind..."
-                className="flex-1 px-4 py-2 border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
+                className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400"
                 disabled={isLoading}
               />
               <button
                 onClick={sendMessage}
                 disabled={isLoading}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg transition-colors ${
                   isLoading 
                     ? 'bg-gray-300 cursor-not-allowed' 
                     : 'bg-rose-500 text-white hover:bg-rose-600'
                 }`}
               >
-                <Send size={20} />
+                <Send size={18} />
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">

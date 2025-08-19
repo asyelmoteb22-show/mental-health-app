@@ -41,7 +41,7 @@ const JournalTab = ({ user }) => {
 
     setSaving(true);
     try {
-      const mood = analyzeMood(newEntry);
+      const mood =  await analyzeMood(newEntry);
       
       const journalData = {
         userId: user.uid,

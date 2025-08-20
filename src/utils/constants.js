@@ -29,3 +29,49 @@ export const reflectionQuestions = [
   "What's one thing you're proud of yourself for?",
   "What brought you joy today?"
 ];
+
+// In utils/constants.js, add:
+export const perspectiveQuestions = [
+  {
+    id: 1,
+    question: "Did you eat at least one meal today?",
+    statistic: "828 million people go to bed hungry every night",
+    category: "food"
+  },
+  {
+    id: 2,
+    question: "Do you have access to clean drinking water?",
+    statistic: "2.2 billion people lack access to safely managed drinking water",
+    category: "water"
+  },
+  {
+    id: 3,
+    question: "Did you sleep in a safe place last night?",
+    statistic: "150 million people are homeless worldwide",
+    category: "shelter"
+  },
+  {
+    id: 4,
+    question: "Can you read and write?",
+    statistic: "771 million adults are illiterate",
+    category: "education"
+  },
+  {
+    id: 5,
+    question: "Do you have at least one person who cares about you?",
+    statistic: "153 million children worldwide are orphans",
+    category: "family"
+  },
+  {
+    id: 6,
+    question: "Do you have access to internet?",
+    statistic: "2.9 billion people have never used the internet",
+    category: "technology"
+  },
+  {
+    id: 7,
+    question: "Have you seen a doctor when needed in the past year?",
+    statistic: "Half the world lacks access to essential health services",
+    category: "healthcare"
+  }
+];

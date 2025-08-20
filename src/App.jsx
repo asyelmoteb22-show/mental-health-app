@@ -6,6 +6,7 @@ import {
   Smile, 
   Brain, 
   Book, 
+  Eye,
   CheckSquare, 
   Bell,
   LogOut,
@@ -22,6 +23,7 @@ import ChatTab from './components/Tabs/ChatTab';
 import MeditateTab from './components/Tabs/MeditateTab';
 import BooksTab from './components/Tabs/BooksTab';
 import RemindersTab from './components/Tabs/RemindersTab';
+import PerspectiveTab from './components/Tabs/PerspectiveTab';
 
 // Import utilities
 import { authFunctions } from './utils/auth';
@@ -79,14 +81,15 @@ const App = () => {
   }
 
   const tabs = [
-    { id: 'journal', label: 'Journal', icon: BookOpen },
-    { id: 'chat', label: 'Chat', icon: MessageCircle },
-    { id: 'mood', label: 'Mood', icon: Smile },
-    { id: 'meditate', label: 'Meditate', icon: Brain },
-    { id: 'books', label: 'Books', icon: Book },
-    { id: 'todo', label: 'To-Do', icon: CheckSquare },
-    { id: 'reminders', label: 'Reminders', icon: Bell },
-  ];
+  { id: 'journal', label: 'Journal', icon: BookOpen },
+  { id: 'chat', label: 'Chat', icon: MessageCircle },
+  { id: 'mood', label: 'Mood', icon: Smile },
+  { id: 'meditate', label: 'Meditate', icon: Brain },
+  { id: 'books', label: 'Books', icon: Book },
+  { id: 'todo', label: 'To-Do', icon: CheckSquare },
+  { id: 'reminders', label: 'Reminders', icon: Bell },
+  { id: 'perspective', label: 'Perspective', icon: Eye }, // FIXED THIS LINE
+];
 
   const quote = getQuoteOfDay();
 

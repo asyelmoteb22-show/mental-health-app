@@ -1,6 +1,6 @@
 // src/components/Tabs/MoodTab.jsx
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Activity, Brain } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Brain, Calendar, Heart, Sparkles } from 'lucide-react';
 import { dbFunctions } from '../../utils/database';
 import { analyzeMoodTrends } from '../../utils/moodAnalyzer';
 
@@ -10,6 +10,7 @@ const MoodTab = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [trendAnalysis, setTrendAnalysis] = useState(null);
   const [analyzingTrends, setAnalyzingTrends] = useState(false);
+  const [hoveredPoint, setHoveredPoint] = useState(null);
 
   useEffect(() => {
     loadMoods();
@@ -123,6 +124,33 @@ const MoodTab = ({ user }) => {
     }
   };
 
+  // Get mood details for a specific day
+  const getMoodDetailsForDay = (dayIndex) => {
+    const targetDate = days[dayIndex];
+    return moods.filter(mood => {
+      const moodDate = formatTimestamp(mood.createdAt).date;
+      return moodDate === targetDate;
+    });
+  };
+
+  // Get emoji based on mood score
+  const getMoodEmoji = (score) => {
+    if (score >= 4) return '😊';
+    if (score >= 3) return '🙂';
+    if (score >= 2) return '😐';
+    if (score >= 1) return '😔';
+    return '😢';
+  };
+
+  // Get color based on mood score
+  const getMoodColor = (score) => {
+    if (score >= 4) return '#10b981'; // green
+    if (score >= 3) return '#84cc16'; // lime
+    if (score >= 2) return '#eab308'; // yellow
+    if (score >= 1) return '#f97316'; // orange
+    return '#ef4444'; // red
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Mood Overview */}
@@ -204,74 +232,218 @@ const MoodTab = ({ user }) => {
         </div>
       )}
 
-      {/* Mood Trend Graph */}
-      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
-        <h2 className="text-lg sm:text-xl font-semibold text-rose-600 mb-3 sm:mb-4">
-          7-Day Mood Trend
-        </h2>
-        {moods.length === 0 ? (
-          <p className="text-gray-500 text-center py-8 text-sm sm:text-base">
-            No mood data yet. Start journaling to see your mood trends!
-          </p>
-        ) : (
-          <div className="relative h-48 sm:h-64">
-            {/* Mood levels */}
-            <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs sm:text-sm text-gray-500 pr-2">
-              <span>😊</span>
-              <span>😐</span>
-              <span>😔</span>
+      {/* Enhanced Mood Trend Graph */}
+      <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white rounded-full shadow-md">
+              <Heart className="text-rose-500" size={24} />
             </div>
-            
-            <div className="ml-6 sm:ml-8 h-full relative">
-              {/* Grid lines */}
-              <div className="absolute inset-0 flex flex-col justify-between">
-                <div className="border-t border-gray-200"></div>
-                <div className="border-t border-gray-200"></div>
-                <div className="border-t border-gray-200"></div>
-              </div>
-              
-              {/* Chart */}
-              <svg className="absolute inset-0 w-full h-full">
-                <polyline
-                  fill="none"
-                  stroke="#f43f5e"
-                  strokeWidth="2"
-                  points={data.map((value, index) => {
-                    const x = (index / (data.length - 1)) * 100;
-                    const y = value > 0 ? 100 - ((value - 1) / 4) * 100 : 100;
-                    return `${x}%,${y}%`;
-                  }).join(' ')}
-                />
-                {data.map((value, index) => {
-                  if (value === 0) return null;
-                  const x = (index / (data.length - 1)) * 100;
-                  const y = 100 - ((value - 1) / 4) * 100;
-                  return (
-                    <circle
-                      key={index}
-                      cx={`${x}%`}
-                      cy={`${y}%`}
-                      r="4"
-                      fill="#f43f5e"
-                    />
-                  );
-                })}
-              </svg>
-              
-              {/* Date labels */}
-              <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500 mt-2 -mb-5 sm:-mb-6">
-                {days.map((day, index) => (
-                  <span key={index} className="hidden sm:inline">
-                    {day.split('/')[0]}/{day.split('/')[1]}
-                  </span>
-                ))}
-                {/* Mobile: Show only first and last date */}
-                <span className="sm:hidden">{days[0].split('/')[0]}/{days[0].split('/')[1]}</span>
-                <span className="sm:hidden">{days[days.length-1].split('/')[0]}/{days[days.length-1].split('/')[1]}</span>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">Mood Journey</h2>
+              <p className="text-sm text-gray-600">Your emotional landscape over the past week</p>
             </div>
           </div>
+          <Sparkles className="text-purple-400" size={24} />
+        </div>
+        
+        {moods.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+              <Calendar className="text-gray-400" size={40} />
+            </div>
+            <p className="text-gray-600 text-lg">No mood data yet</p>
+            <p className="text-gray-500 text-sm mt-2">Start journaling to see your mood trends!</p>
+          </div>
+        ) : (
+          <div className="relative">
+            <svg 
+              width="100%" 
+              height="300" 
+              className="overflow-visible"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              {/* Gradient definition */}
+              <defs>
+                <linearGradient id="moodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.05" />
+                </linearGradient>
+                
+                {/* Shadow filter */}
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="0.5"/>
+                  <feOffset dx="0" dy="0.5" result="offsetblur"/>
+                  <feFlood floodColor="#000000" floodOpacity="0.1"/>
+                  <feComposite in2="offsetblur" operator="in"/>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              
+              {/* Background grid */}
+              <g className="text-gray-200">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <line
+                    key={i}
+                    x1="10"
+                    y1={10 + (i * 20)}
+                    x2="90"
+                    y2={10 + (i * 20)}
+                    stroke="currentColor"
+                    strokeDasharray="1,1"
+                    strokeOpacity="0.3"
+                    strokeWidth="0.2"
+                  />
+                ))}
+              </g>
+              
+              {/* Area chart fill */}
+              <path
+                d={`
+                  M 10 90
+                  ${data.map((value, index) => {
+                    if (value === 0) return '';
+                    const x = 10 + (index / (data.length - 1)) * 80;
+                    const y = 90 - ((value - 1) / 4) * 80;
+                    return `L ${x} ${y}`;
+                  }).join(' ')}
+                  L 90 90
+                  Z
+                `}
+                fill="url(#moodGradient)"
+              />
+              
+              {/* Line chart */}
+              <path
+                d={data.map((value, index) => {
+                  if (value === 0) return '';
+                  const x = 10 + (index / (data.length - 1)) * 80;
+                  const y = 90 - ((value - 1) / 4) * 80;
+                  return `${index === 0 || data[index - 1] === 0 ? 'M' : 'L'} ${x} ${y}`;
+                }).join(' ')}
+                fill="none"
+                stroke="#f43f5e"
+                strokeWidth="0.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                filter="url(#shadow)"
+              />
+              
+              {/* Data points */}
+              {data.map((value, index) => {
+                if (value === 0) return null;
+                const x = 10 + (index / (data.length - 1)) * 80;
+                const y = 90 - ((value - 1) / 4) * 80;
+                const isHovered = hoveredPoint === index;
+                
+                return (
+                  <g key={index}>
+                    {/* Outer ring on hover */}
+                    {isHovered && (
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r="3"
+                        fill={getMoodColor(value)}
+                        fillOpacity="0.2"
+                        className="animate-pulse"
+                      />
+                    )}
+                    
+                    {/* Main point */}
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={isHovered ? "2" : "1.5"}
+                      fill="white"
+                      stroke={getMoodColor(value)}
+                      strokeWidth="0.8"
+                      filter="url(#shadow)"
+                      className="cursor-pointer transition-all duration-200"
+                      onMouseEnter={() => setHoveredPoint(index)}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+            
+            {/* Y-axis labels */}
+            <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2" style={{ paddingTop: '30px', paddingBottom: '30px' }}>
+              <span>😊</span>
+              <span>🙂</span>
+              <span>😐</span>
+              <span>😔</span>
+              <span>😢</span>
+            </div>
+            
+            {/* X-axis labels */}
+            <div className="flex justify-between text-xs text-gray-600 mt-2 px-10">
+              {days.map((day, index) => {
+                const date = new Date(day);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                
+                return (
+                  <div key={index} className="text-center">
+                    <div className="font-medium">{dayName}</div>
+                    <div className="text-gray-400">{day.split('/')[0]}/{day.split('/')[1]}</div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Hover tooltip */}
+            {hoveredPoint !== null && data[hoveredPoint] > 0 && (
+              <div 
+                className="absolute bg-white rounded-lg shadow-xl p-3 pointer-events-none z-10"
+                style={{
+                  left: `${10 + (hoveredPoint / (data.length - 1)) * 80}%`,
+                  top: `${90 - ((data[hoveredPoint] - 1) / 4) * 80}%`,
+                  transform: 'translate(-50%, -120%)'
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{getMoodEmoji(data[hoveredPoint])}</span>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{days[hoveredPoint]}</p>
+                    <p className="text-xs text-gray-600">
+                      Score: {data[hoveredPoint].toFixed(1)}/5
+                    </p>
+                  </div>
+                </div>
+                
+                {getMoodDetailsForDay(hoveredPoint).length > 0 && (
+                  <div className="text-xs text-gray-500 mt-1 pt-1 border-t">
+                    <p>Entries: {getMoodDetailsForDay(hoveredPoint).length}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
+        
+        {/* Legend */}
+        <div className="mt-6 flex flex-wrap gap-4 justify-center">
+          {[
+            { emoji: '😊', label: 'Great', color: '#10b981' },
+            { emoji: '🙂', label: 'Good', color: '#84cc16' },
+            { emoji: '😐', label: 'Okay', color: '#eab308' },
+            { emoji: '😔', label: 'Low', color: '#f97316' },
+            { emoji: '😢', label: 'Hard', color: '#ef4444' }
+          ].map((mood) => (
+            <div key={mood.label} className="flex items-center gap-1">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: mood.color }}
+              />
+              <span className="text-xs text-gray-600">{mood.emoji} {mood.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Mood History */}
@@ -289,8 +461,15 @@ const MoodTab = ({ user }) => {
           <div className="space-y-2 sm:space-y-3">
             {moods.slice(0, 10).map((mood) => {
               const timestamp = formatTimestamp(mood.createdAt);
+              const moodScore = mood.moodData?.score || 3;
+              const moodColor = getMoodColor(moodScore);
+              
               return (
-                <div key={mood.id} className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 rounded-lg">
+                <div 
+                  key={mood.id} 
+                  className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  style={{ borderLeft: `4px solid ${moodColor}` }}
+                >
                   <div className="flex items-center gap-2 sm:gap-3">
                     <span className="text-xl sm:text-2xl">{mood.mood.split(' ')[0]}</span>
                     <div>
@@ -305,6 +484,19 @@ const MoodTab = ({ user }) => {
                       )}
                     </div>
                   </div>
+                  {moodScore && (
+                    <div className="text-right">
+                      <div 
+                        className="text-xs font-medium px-2 py-1 rounded-full"
+                        style={{ 
+                          backgroundColor: `${moodColor}20`,
+                          color: moodColor
+                        }}
+                      >
+                        {moodScore.toFixed(1)}/5
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

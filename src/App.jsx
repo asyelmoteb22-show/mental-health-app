@@ -8,14 +8,16 @@ import {
   Book, 
   Eye,
   CheckSquare, 
-  Bell,
-  LogOut,
-  Menu,
-  X
+  Bell
 } from 'lucide-react';
 
-// Import all components
+// Import components
 import Auth from './components/Auth/Auth';
+import Header from './components/Layout/Header';
+import BottomNav from './components/Layout/BottomNav';
+import QuoteOfDay from './components/Layout/QuoteOfDay';
+
+// Import tab components
 import JournalTab from './components/Tabs/JournalTab';
 import MoodTab from './components/Tabs/MoodTab';
 import TodoTab from './components/Tabs/TodoTab';
@@ -27,13 +29,24 @@ import PerspectiveTab from './components/Tabs/PerspectiveTab';
 
 // Import utilities
 import { authFunctions } from './utils/auth';
-import { getQuoteOfDay } from './utils/helpers';
 
 const App = () => {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('journal');
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Define tabs configuration
+  const tabs = [
+    { id: 'journal', label: 'Journal', icon: BookOpen },
+    { id: 'chat', label: 'Chat', icon: MessageCircle },
+    { id: 'mood', label: 'Mood', icon: Smile },
+    { id: 'meditate', label: 'Meditate', icon: Brain },
+    { id: 'books', label: 'Books', icon: Book },
+    { id: 'todo', label: 'To-Do', icon: CheckSquare },
+    { id: 'reminders', label: 'Reminders', icon: Bell },
+    { id: 'perspective', label: 'Perspective', icon: Eye },
+  ];
 
   useEffect(() => {
     // Listen for auth state changes
@@ -68,6 +81,7 @@ const App = () => {
     setMobileMenuOpen(false);
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
@@ -76,106 +90,26 @@ const App = () => {
     );
   }
 
+  // Auth state
   if (!user) {
     return <Auth onAuth={handleAuth} />;
   }
 
-  const tabs = [
-  { id: 'journal', label: 'Journal', icon: BookOpen },
-  { id: 'chat', label: 'Chat', icon: MessageCircle },
-  { id: 'mood', label: 'Mood', icon: Smile },
-  { id: 'meditate', label: 'Meditate', icon: Brain },
-  { id: 'books', label: 'Books', icon: Book },
-  { id: 'todo', label: 'To-Do', icon: CheckSquare },
-  { id: 'reminders', label: 'Reminders', icon: Bell },
-  { id: 'perspective', label: 'Perspective', icon: Eye }, // FIXED THIS LINE
-];
-
-  const quote = getQuoteOfDay();
-
+  // Main app
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo and Mobile Menu Button */}
-            <div className="flex items-center">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              <div className="flex items-center ml-2 lg:ml-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-rose-600">
-                  सुकून
-                </h1>
-                <span className="hidden sm:inline text-sm text-gray-500 ml-3">
-                  Your Mental Wellness Companion
-                </span>
-              </div>
-            </div>
+      {/* Header Component */}
+      <Header 
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onLogout={handleLogout}
+      />
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex space-x-8">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 py-2 border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'text-rose-600 border-rose-600'
-                      : 'text-gray-600 border-transparent hover:text-gray-900'
-                  }`}
-                >
-                  <tab.icon size={20} />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-800 flex items-center gap-2 text-sm sm:text-base"
-            >
-              <LogOut size={20} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-200">
-            <nav className="px-4 py-2 space-y-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-rose-50 text-rose-600'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <tab.icon size={20} />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        )}
-      </div>
-
-      {/* Quote of the Day */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
-          <h2 className="text-base sm:text-lg font-semibold text-rose-600 mb-2">Quote of the Day</h2>
-          <p className="text-sm sm:text-base text-gray-700 italic">{quote}</p>
-        </div>
-      </div>
+      {/* Quote of the Day Component */}
+      <QuoteOfDay />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 lg:pb-8">
@@ -186,28 +120,15 @@ const App = () => {
         {activeTab === 'books' && <BooksTab user={user} />}
         {activeTab === 'todo' && <TodoTab user={user} />}
         {activeTab === 'reminders' && <RemindersTab user={user} />}
+        {activeTab === 'perspective' && <PerspectiveTab user={user} />}
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <div className="grid grid-cols-4 gap-1">
-          {tabs.slice(0, 4).map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`flex flex-col items-center py-2 ${
-                  activeTab === tab.id ? 'text-rose-600' : 'text-gray-400'
-                }`}
-              >
-                <Icon size={20} />
-                <span className="text-xs mt-1">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Bottom Navigation Component (Mobile only) */}
+      <BottomNav 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        tabs={tabs}
+      />
     </div>
   );
 };

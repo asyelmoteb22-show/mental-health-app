@@ -47,6 +47,16 @@ Important guidelines:
 
 Remember: You're here to support, not to solve everything. Sometimes just listening and validating feelings is enough.`;
 
+export const MOOD_ANALYSIS_PROMPT = `Analyze the emotional tone and mood of the following journal entry. 
+Provide a brief, empathetic analysis that includes:
+1. The primary emotions detected
+2. The overall mood or emotional state
+3. Any patterns or themes you notice
+4. A supportive observation or gentle insight
+
+Keep your response concise (2-3 sentences) and focus on understanding rather than judging. 
+Here's the entry to analyze:`;
+
 // Helper function to test if API is working
 export const testGeminiConnection = async () => {
   try {

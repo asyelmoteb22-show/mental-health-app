@@ -1,8 +1,9 @@
 // src/components/Tabs/JournalTab.jsx
 import React, { useState, useEffect } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Loader, Brain } from 'lucide-react';
 import { dbFunctions } from '../../utils/database';
-import { getDailyQuestions, analyzeMood } from '../../utils/helpers';
+import { getDailyQuestions } from '../../utils/helpers';
+import { analyzeMoodWithAI } from '../../utils/moodAnalyzer';
 
 const JournalTab = ({ user }) => {
   const [entries, setEntries] = useState([]);
@@ -10,6 +11,8 @@ const JournalTab = ({ user }) => {
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [lastAnalysis, setLastAnalysis] = useState(null);
   const dailyQuestions = getDailyQuestions();
 
   useEffect(() => {
@@ -40,24 +43,36 @@ const JournalTab = ({ user }) => {
     }
 
     setSaving(true);
+    setAnalyzing(true);
+    
     try {
-      const mood =  await analyzeMood(newEntry);
+      // Analyze mood with AI
+      const moodAnalysis = await analyzeMoodWithAI(newEntry);
+      setLastAnalysis(moodAnalysis);
       
       const journalData = {
         userId: user.uid,
         content: newEntry,
         question: selectedQuestion,
-        mood: mood
+        mood: moodAnalysis.mood,
+        moodData: moodAnalysis.moodData,
+        moodConfidence: moodAnalysis.confidence,
+        emotionalTones: moodAnalysis.emotionalTones,
+        keyPhrases: moodAnalysis.keyPhrases,
+        suggestion: moodAnalysis.suggestion
       };
       
       const journalResult = await dbFunctions.add('journals', journalData);
       
       if (journalResult.success) {
+        // Save to moods collection for tracking
         const moodData = {
           userId: user.uid,
-          mood: mood,
+          mood: moodAnalysis.mood,
+          moodData: moodAnalysis.moodData,
           journalId: journalResult.id,
-          journalContent: newEntry
+          journalContent: newEntry,
+          confidence: moodAnalysis.confidence
         };
         
         await dbFunctions.add('moods', moodData);
@@ -66,7 +81,10 @@ const JournalTab = ({ user }) => {
         setSelectedQuestion('');
         await loadEntries();
         
-        alert('Entry saved successfully!');
+        // Show analysis results
+        setTimeout(() => {
+          setLastAnalysis(null);
+        }, 5000);
       } else {
         alert('Error saving entry. Please try again.');
       }
@@ -75,6 +93,7 @@ const JournalTab = ({ user }) => {
       alert('Error saving entry. Please try again.');
     } finally {
       setSaving(false);
+      setAnalyzing(false);
     }
   };
 
@@ -155,15 +174,38 @@ const JournalTab = ({ user }) => {
           className="w-full h-32 sm:h-40 p-3 sm:p-4 text-sm sm:text-base border border-rose-200 rounded-lg focus:outline-none focus:border-rose-400 resize-none"
           disabled={saving}
         />
+        
+        {/* AI Analysis Results */}
+        {lastAnalysis && (
+          <div className="mt-3 p-3 bg-rose-50 rounded-lg animate-fade-in">
+            <div className="flex items-center gap-2 mb-2">
+              <Brain size={16} className="text-rose-600" />
+              <span className="text-sm font-semibold text-rose-600">AI Mood Analysis</span>
+            </div>
+            <p className="text-sm text-gray-700">
+              Detected mood: <span className="font-semibold">{lastAnalysis.mood}</span>
+              {lastAnalysis.confidence > 0.7 && 
+                <span className="text-xs text-gray-500 ml-2">(High confidence)</span>
+              }
+            </p>
+            {lastAnalysis.suggestion && (
+              <p className="text-sm text-gray-600 mt-1 italic">
+                💡 {lastAnalysis.suggestion}
+              </p>
+            )}
+          </div>
+        )}
+        
         <button
           onClick={saveEntry}
           disabled={!newEntry.trim() || saving}
-          className={`mt-3 sm:mt-4 px-4 sm:px-6 py-2 text-sm sm:text-base rounded-lg transition-colors ${
+          className={`mt-3 sm:mt-4 px-4 sm:px-6 py-2 text-sm sm:text-base rounded-lg transition-colors flex items-center gap-2 ${
             newEntry.trim() && !saving
               ? 'bg-rose-500 text-white hover:bg-rose-600' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
+          {analyzing && <Loader className="animate-spin" size={16} />}
           {saving ? 'Saving...' : 'Save Entry'}
         </button>
       </div>
@@ -186,9 +228,16 @@ const JournalTab = ({ user }) => {
               return (
                 <div key={entry.id} className="border border-rose-100 rounded-lg p-3 sm:p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs sm:text-sm text-gray-500">
-                      {timestamp.date} at {timestamp.time}
-                    </span>
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-500">
+                        {timestamp.date} at {timestamp.time}
+                      </span>
+                      {entry.mood && (
+                        <span className="ml-2 text-sm">
+                          {entry.mood}
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => deleteEntry(entry.id)}
                       className="text-red-500 hover:text-red-700 transition-colors p-1"
@@ -204,6 +253,11 @@ const JournalTab = ({ user }) => {
                   <p className="text-sm sm:text-base text-gray-800 whitespace-pre-wrap">
                     {entry.content}
                   </p>
+                  {entry.suggestion && (
+                    <p className="text-xs sm:text-sm text-gray-600 italic mt-2 p-2 bg-gray-50 rounded">
+                      💡 {entry.suggestion}
+                    </p>
+                  )}
                 </div>
               );
             })}

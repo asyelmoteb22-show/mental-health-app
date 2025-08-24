@@ -1,11 +1,15 @@
 // src/components/Tabs/MoodTab.jsx
 import React, { useState, useEffect } from 'react';
+import { TrendingUp, TrendingDown, Activity, Brain } from 'lucide-react';
 import { dbFunctions } from '../../utils/database';
+import { analyzeMoodTrends } from '../../utils/moodAnalyzer';
 
 const MoodTab = ({ user }) => {
   const [moods, setMoods] = useState([]);
   const [moodStats, setMoodStats] = useState({ happy: 0, sad: 0, neutral: 0 });
   const [loading, setLoading] = useState(false);
+  const [trendAnalysis, setTrendAnalysis] = useState(null);
+  const [analyzingTrends, setAnalyzingTrends] = useState(false);
 
   useEffect(() => {
     loadMoods();
@@ -19,13 +23,23 @@ const MoodTab = ({ user }) => {
       if (result.success) {
         setMoods(result.documents);
         
+        // Calculate stats
         const stats = { happy: 0, sad: 0, neutral: 0 };
         result.documents.forEach(mood => {
-          if (mood.mood.includes('Happy')) stats.happy++;
-          else if (mood.mood.includes('Sad')) stats.sad++;
-          else stats.neutral++;
+          if (mood.mood.includes('Happy') || mood.mood.includes('Excited') || mood.mood.includes('Grateful')) {
+            stats.happy++;
+          } else if (mood.mood.includes('Sad') || mood.mood.includes('Angry') || mood.mood.includes('Anxious')) {
+            stats.sad++;
+          } else {
+            stats.neutral++;
+          }
         });
         setMoodStats(stats);
+        
+        // Analyze trends if we have enough data
+        if (result.documents.length >= 3) {
+          analyzeTrends(result.documents);
+        }
       } else {
         console.error('Error loading moods:', result.error);
       }
@@ -33,6 +47,18 @@ const MoodTab = ({ user }) => {
       console.error('Error loading moods:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const analyzeTrends = async (moodData) => {
+    setAnalyzingTrends(true);
+    try {
+      const analysis = await analyzeMoodTrends(moodData);
+      setTrendAnalysis(analysis);
+    } catch (error) {
+      console.error('Error analyzing trends:', error);
+    } finally {
+      setAnalyzingTrends(false);
     }
   };
 
@@ -70,9 +96,8 @@ const MoodTab = ({ user }) => {
       let score = 0;
       if (dayMoods.length > 0) {
         const totalScore = dayMoods.reduce((sum, mood) => {
-          if (mood.mood.includes('Happy')) return sum + 3;
-          if (mood.mood.includes('Neutral')) return sum + 2;
-          return sum + 1;
+          const moodScore = mood.moodData?.score || 3;
+          return sum + moodScore;
         }, 0);
         score = totalScore / dayMoods.length;
       }
@@ -84,6 +109,19 @@ const MoodTab = ({ user }) => {
   };
 
   const { days, data } = getLast7DaysMoodData();
+
+  const getTrendIcon = () => {
+    if (!trendAnalysis) return <Activity size={20} className="text-gray-400" />;
+    
+    switch (trendAnalysis.trend) {
+      case 'improving':
+        return <TrendingUp size={20} className="text-green-500" />;
+      case 'declining':
+        return <TrendingDown size={20} className="text-red-500" />;
+      default:
+        return <Activity size={20} className="text-yellow-500" />;
+    }
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -99,7 +137,7 @@ const MoodTab = ({ user }) => {
             <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
               <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">😊</div>
               <div className="text-xl sm:text-2xl font-bold text-green-600">{moodStats.happy}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Happy</div>
+              <div className="text-xs sm:text-sm text-gray-600">Positive</div>
             </div>
             <div className="text-center p-3 sm:p-4 bg-yellow-50 rounded-lg">
               <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">😐</div>
@@ -109,11 +147,62 @@ const MoodTab = ({ user }) => {
             <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">😔</div>
               <div className="text-xl sm:text-2xl font-bold text-blue-600">{moodStats.sad}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Sad</div>
+              <div className="text-xs sm:text-sm text-gray-600">Challenging</div>
             </div>
           </div>
         )}
       </div>
+
+      {/* AI Insights */}
+      {trendAnalysis && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 sm:p-6 shadow-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="text-purple-600" size={20} />
+            <h3 className="text-lg font-semibold text-purple-800">AI Mood Insights</h3>
+            {getTrendIcon()}
+          </div>
+          
+          <div className="space-y-3">
+            {/* Trend */}
+            <div className="bg-white/70 rounded-lg p-3">
+              <p className="text-sm font-medium text-gray-700">
+                Your mood trend: 
+                <span className={`ml-2 font-semibold ${
+                  trendAnalysis.trend === 'improving' ? 'text-green-600' :
+                  trendAnalysis.trend === 'declining' ? 'text-red-600' :
+                  'text-yellow-600'
+                }`}>
+                  {trendAnalysis.trend.charAt(0).toUpperCase() + trendAnalysis.trend.slice(1)}
+                </span>
+              </p>
+            </div>
+            
+            {/* Insights */}
+            {trendAnalysis.insights.length > 0 && (
+              <div className="bg-white/70 rounded-lg p-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">Key Observations:</p>
+                <ul className="space-y-1">
+                  {trendAnalysis.insights.map((insight, index) => (
+                    <li key={index} className="text-sm text-gray-600 flex items-start">
+                      <span className="text-purple-500 mr-2">•</span>
+                      {insight}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Recommendation */}
+            {trendAnalysis.recommendation && (
+              <div className="bg-purple-100 rounded-lg p-3">
+                <p className="text-sm text-purple-800">
+                  <span className="font-medium">💡 Suggestion:</span> {trendAnalysis.recommendation}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Mood Trend Graph */}
       <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
@@ -126,6 +215,7 @@ const MoodTab = ({ user }) => {
           </p>
         ) : (
           <div className="relative h-48 sm:h-64">
+            {/* Mood levels */}
             <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs sm:text-sm text-gray-500 pr-2">
               <span>😊</span>
               <span>😐</span>
@@ -133,12 +223,14 @@ const MoodTab = ({ user }) => {
             </div>
             
             <div className="ml-6 sm:ml-8 h-full relative">
+              {/* Grid lines */}
               <div className="absolute inset-0 flex flex-col justify-between">
                 <div className="border-t border-gray-200"></div>
                 <div className="border-t border-gray-200"></div>
                 <div className="border-t border-gray-200"></div>
               </div>
               
+              {/* Chart */}
               <svg className="absolute inset-0 w-full h-full">
                 <polyline
                   fill="none"
@@ -146,14 +238,14 @@ const MoodTab = ({ user }) => {
                   strokeWidth="2"
                   points={data.map((value, index) => {
                     const x = (index / (data.length - 1)) * 100;
-                    const y = value > 0 ? 100 - ((value - 1) / 2) * 100 : 100;
+                    const y = value > 0 ? 100 - ((value - 1) / 4) * 100 : 100;
                     return `${x}%,${y}%`;
                   }).join(' ')}
                 />
                 {data.map((value, index) => {
                   if (value === 0) return null;
                   const x = (index / (data.length - 1)) * 100;
-                  const y = 100 - ((value - 1) / 2) * 100;
+                  const y = 100 - ((value - 1) / 4) * 100;
                   return (
                     <circle
                       key={index}
@@ -166,6 +258,7 @@ const MoodTab = ({ user }) => {
                 })}
               </svg>
               
+              {/* Date labels */}
               <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500 mt-2 -mb-5 sm:-mb-6">
                 {days.map((day, index) => (
                   <span key={index} className="hidden sm:inline">
@@ -201,10 +294,15 @@ const MoodTab = ({ user }) => {
                   <div className="flex items-center gap-2 sm:gap-3">
                     <span className="text-xl sm:text-2xl">{mood.mood.split(' ')[0]}</span>
                     <div>
-                      <p className="font-medium text-sm sm:text-base">{mood.mood.split(' ')[1]}</p>
+                      <p className="font-medium text-sm sm:text-base">{mood.mood.split(' ').slice(1).join(' ')}</p>
                       <p className="text-xs sm:text-sm text-gray-500">
                         {timestamp.date} at {timestamp.time}
                       </p>
+                      {mood.confidence && mood.confidence > 0.7 && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          AI confidence: {Math.round(mood.confidence * 100)}%
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

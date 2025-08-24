@@ -1,6 +1,6 @@
 // src/components/Tabs/MoodTab.jsx
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Activity, Brain, Calendar, Heart, Sparkles } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Brain, Sparkles, Flower2 } from 'lucide-react';
 import { dbFunctions } from '../../utils/database';
 import { analyzeMoodTrends } from '../../utils/moodAnalyzer';
 
@@ -10,7 +10,6 @@ const MoodTab = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [trendAnalysis, setTrendAnalysis] = useState(null);
   const [analyzingTrends, setAnalyzingTrends] = useState(false);
-  const [hoveredPoint, setHoveredPoint] = useState(null);
 
   useEffect(() => {
     loadMoods();
@@ -124,25 +123,20 @@ const MoodTab = ({ user }) => {
     }
   };
 
-  // Get mood details for a specific day
-  const getMoodDetailsForDay = (dayIndex) => {
-    const targetDate = days[dayIndex];
-    return moods.filter(mood => {
-      const moodDate = formatTimestamp(mood.createdAt).date;
-      return moodDate === targetDate;
-    });
+  // Growth Garden specific functions
+  const getPlantStage = (score) => {
+    if (score === 0) return 'seed';
+    if (score < 2) return 'sprout';
+    if (score < 3) return 'growing';
+    if (score < 4) return 'blooming';
+    return 'flourishing';
   };
+  
+  const gardenHealth = data.filter(d => d > 0).length > 0 
+    ? (data.reduce((a, b) => a + b, 0) / (data.filter(d => d > 0).length * 5)) * 100
+    : 0;
 
-  // Get emoji based on mood score
-  const getMoodEmoji = (score) => {
-    if (score >= 4) return '😊';
-    if (score >= 3) return '🙂';
-    if (score >= 2) return '😐';
-    if (score >= 1) return '😔';
-    return '😢';
-  };
-
-  // Get color based on mood score
+  // Get mood color based on score
   const getMoodColor = (score) => {
     if (score >= 4) return '#10b981'; // green
     if (score >= 3) return '#84cc16'; // lime
@@ -232,217 +226,99 @@ const MoodTab = ({ user }) => {
         </div>
       )}
 
-      {/* Enhanced Mood Trend Graph */}
-      <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-white rounded-full shadow-md">
-              <Heart className="text-rose-500" size={24} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Mood Journey</h2>
-              <p className="text-sm text-gray-600">Your emotional landscape over the past week</p>
-            </div>
+      {/* Growth Garden Visualization */}
+      <div className="bg-gradient-to-b from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-4 sm:p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Your Growth Garden</h3>
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium text-gray-600">Garden Health:</div>
+            <div className="text-lg font-bold text-green-600">{Math.round(gardenHealth)}%</div>
           </div>
-          <Sparkles className="text-purple-400" size={24} />
         </div>
         
-        {moods.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
-              <Calendar className="text-gray-400" size={40} />
-            </div>
-            <p className="text-gray-600 text-lg">No mood data yet</p>
-            <p className="text-gray-500 text-sm mt-2">Start journaling to see your mood trends!</p>
-          </div>
-        ) : (
-          <div className="relative">
-            <svg 
-              width="100%" 
-              height="300" 
-              className="overflow-visible"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              onMouseLeave={() => setHoveredPoint(null)}
-            >
-              {/* Gradient definition */}
-              <defs>
-                <linearGradient id="moodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.05" />
-                </linearGradient>
-                
-                {/* Shadow filter */}
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur in="SourceAlpha" stdDeviation="0.5"/>
-                  <feOffset dx="0" dy="0.5" result="offsetblur"/>
-                  <feFlood floodColor="#000000" floodOpacity="0.1"/>
-                  <feComposite in2="offsetblur" operator="in"/>
-                  <feMerge>
-                    <feMergeNode/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
+        {/* Garden visualization */}
+        <div className="bg-white/50 rounded-lg p-3 sm:p-4 mb-4">
+          <div className="flex items-end justify-between h-24 sm:h-32">
+            {data.map((score, index) => {
+              const stage = getPlantStage(score);
+              const height = (score / 5) * 100;
               
-              {/* Background grid */}
-              <g className="text-gray-200">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <line
-                    key={i}
-                    x1="10"
-                    y1={10 + (i * 20)}
-                    x2="90"
-                    y2={10 + (i * 20)}
-                    stroke="currentColor"
-                    strokeDasharray="1,1"
-                    strokeOpacity="0.3"
-                    strokeWidth="0.2"
-                  />
-                ))}
-              </g>
-              
-              {/* Area chart fill */}
-              <path
-                d={`
-                  M 10 90
-                  ${data.map((value, index) => {
-                    if (value === 0) return '';
-                    const x = 10 + (index / (data.length - 1)) * 80;
-                    const y = 90 - ((value - 1) / 4) * 80;
-                    return `L ${x} ${y}`;
-                  }).join(' ')}
-                  L 90 90
-                  Z
-                `}
-                fill="url(#moodGradient)"
-              />
-              
-              {/* Line chart */}
-              <path
-                d={data.map((value, index) => {
-                  if (value === 0) return '';
-                  const x = 10 + (index / (data.length - 1)) * 80;
-                  const y = 90 - ((value - 1) / 4) * 80;
-                  return `${index === 0 || data[index - 1] === 0 ? 'M' : 'L'} ${x} ${y}`;
-                }).join(' ')}
-                fill="none"
-                stroke="#f43f5e"
-                strokeWidth="0.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter="url(#shadow)"
-              />
-              
-              {/* Data points */}
-              {data.map((value, index) => {
-                if (value === 0) return null;
-                const x = 10 + (index / (data.length - 1)) * 80;
-                const y = 90 - ((value - 1) / 4) * 80;
-                const isHovered = hoveredPoint === index;
-                
-                return (
-                  <g key={index}>
-                    {/* Outer ring on hover */}
-                    {isHovered && (
-                      <circle
-                        cx={x}
-                        cy={y}
-                        r="3"
-                        fill={getMoodColor(value)}
-                        fillOpacity="0.2"
-                        className="animate-pulse"
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center justify-end">
+                  {stage !== 'seed' && (
+                    <div className="relative">
+                      {/* Plant stem */}
+                      <div 
+                        className="w-1 bg-green-500 rounded-t mx-auto transition-all duration-500"
+                        style={{ height: `${height}px` }}
                       />
-                    )}
-                    
-                    {/* Main point */}
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={isHovered ? "2" : "1.5"}
-                      fill="white"
-                      stroke={getMoodColor(value)}
-                      strokeWidth="0.8"
-                      filter="url(#shadow)"
-                      className="cursor-pointer transition-all duration-200"
-                      onMouseEnter={() => setHoveredPoint(index)}
-                    />
-                  </g>
-                );
-              })}
-            </svg>
-            
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2" style={{ paddingTop: '30px', paddingBottom: '30px' }}>
-              <span>😊</span>
-              <span>🙂</span>
-              <span>😐</span>
-              <span>😔</span>
-              <span>😢</span>
-            </div>
-            
-            {/* X-axis labels */}
-            <div className="flex justify-between text-xs text-gray-600 mt-2 px-10">
-              {days.map((day, index) => {
-                const date = new Date(day);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                
-                return (
-                  <div key={index} className="text-center">
-                    <div className="font-medium">{dayName}</div>
-                    <div className="text-gray-400">{day.split('/')[0]}/{day.split('/')[1]}</div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Hover tooltip */}
-            {hoveredPoint !== null && data[hoveredPoint] > 0 && (
-              <div 
-                className="absolute bg-white rounded-lg shadow-xl p-3 pointer-events-none z-10"
-                style={{
-                  left: `${10 + (hoveredPoint / (data.length - 1)) * 80}%`,
-                  top: `${90 - ((data[hoveredPoint] - 1) / 4) * 80}%`,
-                  transform: 'translate(-50%, -120%)'
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{getMoodEmoji(data[hoveredPoint])}</span>
-                  <div>
-                    <p className="font-semibold text-gray-800 text-sm">{days[hoveredPoint]}</p>
-                    <p className="text-xs text-gray-600">
-                      Score: {data[hoveredPoint].toFixed(1)}/5
-                    </p>
-                  </div>
+                      
+                      {/* Flowers/Leaves */}
+                      {stage === 'flourishing' && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <div className="text-xl sm:text-2xl animate-pulse">🌸</div>
+                        </div>
+                      )}
+                      {stage === 'blooming' && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <div className="text-lg sm:text-xl">🌺</div>
+                        </div>
+                      )}
+                      {stage === 'growing' && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <div className="text-base sm:text-lg">🌿</div>
+                        </div>
+                      )}
+                      {stage === 'sprout' && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <div className="text-xs sm:text-sm">🌱</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {stage === 'seed' && (
+                    <div className="text-xs opacity-50">🌰</div>
+                  )}
                 </div>
-                
-                {getMoodDetailsForDay(hoveredPoint).length > 0 && (
-                  <div className="text-xs text-gray-500 mt-1 pt-1 border-t">
-                    <p>Entries: {getMoodDetailsForDay(hoveredPoint).length}</p>
-                  </div>
-                )}
-              </div>
-            )}
+              );
+            })}
           </div>
-        )}
+          
+          {/* Soil line */}
+          <div className="w-full h-3 sm:h-4 bg-gradient-to-b from-amber-700 to-amber-800 rounded mt-2"></div>
+          
+          {/* Day labels */}
+          <div className="flex justify-between mt-2">
+            {days.map((day, index) => (
+              <div key={index} className="flex-1 text-center">
+                <p className="text-xs text-gray-600">
+                  {new Date(day).toLocaleDateString('en-US', { weekday: 'short' })[0]}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
         
-        {/* Legend */}
-        <div className="mt-6 flex flex-wrap gap-4 justify-center">
-          {[
-            { emoji: '😊', label: 'Great', color: '#10b981' },
-            { emoji: '🙂', label: 'Good', color: '#84cc16' },
-            { emoji: '😐', label: 'Okay', color: '#eab308' },
-            { emoji: '😔', label: 'Low', color: '#f97316' },
-            { emoji: '😢', label: 'Hard', color: '#ef4444' }
-          ].map((mood) => (
-            <div key={mood.label} className="flex items-center gap-1">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: mood.color }}
-              />
-              <span className="text-xs text-gray-600">{mood.emoji} {mood.label}</span>
-            </div>
-          ))}
+        {/* Growth insights */}
+        <div className="space-y-2">
+          <div className="bg-green-100 rounded-lg p-2.5 sm:p-3">
+            <p className="text-xs sm:text-sm font-medium text-green-800">
+              🌱 Seeds Planted: {data.filter(d => d > 0).length} days tracked
+            </p>
+          </div>
+          
+          <div className="bg-yellow-100 rounded-lg p-2.5 sm:p-3">
+            <p className="text-xs sm:text-sm font-medium text-yellow-800">
+              🌺 Blooms: {data.filter(d => d >= 4).length} exceptional days
+            </p>
+          </div>
+          
+          <div className="bg-blue-100 rounded-lg p-2.5 sm:p-3">
+            <p className="text-xs sm:text-sm font-medium text-blue-800">
+              💧 Remember: Even small plants need care. Every entry helps your garden grow!
+            </p>
+          </div>
         </div>
       </div>
 

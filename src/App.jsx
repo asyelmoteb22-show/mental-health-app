@@ -38,6 +38,7 @@ const App = () => {
 
   // Define tabs configuration
   const tabs = [
+    { id: 'perspective', label: 'Perspective', icon: Eye },
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'mood', label: 'Mood', icon: Smile },
@@ -45,7 +46,6 @@ const App = () => {
     { id: 'books', label: 'Books', icon: Book },
     { id: 'todo', label: 'To-Do', icon: CheckSquare },
     { id: 'reminders', label: 'Reminders', icon: Bell },
-    { id: 'perspective', label: 'Perspective', icon: Eye },
   ];
 
   useEffect(() => {

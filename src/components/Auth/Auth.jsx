@@ -1,10 +1,13 @@
 // src/components/Auth/Auth.jsx
 import React, { useState } from 'react';
 import { authFunctions } from '../../utils/auth';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../config/firebase';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, ArrowLeft, CheckCircle } from 'lucide-react';
 
 const Auth = ({ onAuth }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -13,6 +16,7 @@ const Auth = ({ onAuth }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Email validation
   const validateEmail = (email) => {
@@ -123,6 +127,46 @@ const Auth = ({ onAuth }) => {
     }
   };
 
+  // Handle password reset
+  const handlePasswordReset = async () => {
+    setError('');
+    
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetEmailSent(true);
+    } catch (error) {
+      console.error('Password reset error:', error);
+      
+      switch (error.code) {
+        case 'auth/user-not-found':
+          setError('No account found with this email address');
+          break;
+        case 'auth/invalid-email':
+          setError('Please enter a valid email address');
+          break;
+        case 'auth/too-many-requests':
+          setError('Too many attempts. Please try again later');
+          break;
+        default:
+          setError('Failed to send reset email. Please try again');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Clear errors when switching between login/signup
   const toggleMode = () => {
     setIsLogin(!isLogin);
@@ -148,6 +192,140 @@ const Auth = ({ onAuth }) => {
 
   const passwordStrength = getPasswordStrength();
 
+  // Forgot Password Screen
+  if (showForgotPassword) {
+    if (resetEmailSent) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md mx-auto">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <CheckCircle className="text-green-600" size={32} />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Check Your Email
+              </h2>
+              
+              <p className="text-gray-600 mb-6">
+                We've sent a password reset link to:
+                <br />
+                <span className="font-medium text-gray-800">{email}</span>
+              </p>
+              
+              <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
+                <p className="text-sm text-blue-800 font-medium">
+                  Next steps:
+                </p>
+                <ol className="text-sm text-blue-700 mt-2 space-y-1 list-decimal list-inside">
+                  <li>Check your email inbox (and spam folder)</li>
+                  <li>Click the reset link in the email</li>
+                  <li>Create a new password</li>
+                  <li>Sign in with your new password</li>
+                </ol>
+              </div>
+              
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setResetEmailSent(false);
+                  setError('');
+                }}
+                className="w-full bg-rose-500 text-white rounded-lg py-3 font-medium hover:bg-rose-600 transition-colors"
+              >
+                Back to Sign In
+              </button>
+              
+              <p className="text-xs text-gray-500 mt-4">
+                Didn't receive the email? Check your spam folder or try again in a few minutes.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md mx-auto">
+          <button
+            onClick={() => {
+              setShowForgotPassword(false);
+              setError('');
+            }}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            <span>Back to Sign In</span>
+          </button>
+          
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Forgot Your Password?
+            </h2>
+            <p className="text-gray-600">
+              No worries! Enter your email and we'll send you reset instructions.
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border border-rose-200 focus:outline-none focus:border-rose-400"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg flex items-start">
+                <AlertCircle size={18} className="mr-2 flex-shrink-0 mt-0.5" />
+                <p className="text-xs sm:text-sm">{error}</p>
+              </div>
+            )}
+            
+            <button
+              onClick={handlePasswordReset}
+              disabled={loading}
+              className={`w-full py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors font-medium ${
+                loading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-rose-500 text-white hover:bg-rose-600'
+              }`}
+            >
+              {loading ? 'Sending...' : 'Send Reset Email'}
+            </button>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Remember your password?{' '}
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setError('');
+                }}
+                className="text-rose-500 hover:underline font-medium"
+              >
+                Sign In
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Auth Screen
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md mx-auto">
@@ -192,9 +370,20 @@ const Auth = ({ onAuth }) => {
           
           {/* Password Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-xs sm:text-sm text-rose-500 hover:text-rose-600"
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -341,15 +530,6 @@ const Auth = ({ onAuth }) => {
             {isLogin ? 'Sign Up' : 'Sign In'}
           </button>
         </p>
-        
-        {/* Forgot Password (Login only) */}
-        {isLogin && (
-          <p className="text-center mt-2">
-            <button className="text-xs sm:text-sm text-gray-500 hover:text-gray-700">
-              Forgot your password?
-            </button>
-          </p>
-        )}
       </div>
     </div>
   );

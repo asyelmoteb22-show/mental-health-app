@@ -88,7 +88,11 @@ const VisionBoardTab = ({ user }) => {
     '🌸', '🦋', '🌺', '💝', '🎪', '🎸', '🏖️', '⛰️'
   ];
 
- 
+  // Load data when component mounts - THIS WAS MISSING!
+  useEffect(() => {
+    loadVisionItems();
+    loadGoals();
+  }, [user.uid]);
 
   // Load vision board items from database
   const loadVisionItems = async () => {
@@ -222,9 +226,13 @@ const VisionBoardTab = ({ user }) => {
         milestones: newGoal.milestones.filter(m => m.trim()),
         completed: false,
         progress: 0,
-        createdAt: editingGoalId ? undefined : new Date(),
         updatedAt: new Date()
       };
+      
+      // Don't override createdAt when updating
+      if (!editingGoalId) {
+        goalData.createdAt = new Date();
+      }
       
       let result;
       if (editingGoalId) {
@@ -333,6 +341,38 @@ const VisionBoardTab = ({ user }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header with Stats */}
+      <div className="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 rounded-2xl p-6 shadow-xl text-white">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold mb-1">Your Dreams & Aspirations</h2>
+            <p className="text-white/80">Transform your visions into reality, one step at a time</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold">{visionItems.length + goals.length}</div>
+            <div className="text-sm text-white/80">Total Dreams</div>
+          </div>
+        </div>
+        
+        {/* Progress Stats */}
+        {totalGoalsCount > 0 && (
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Goal Achievement</span>
+              <span className="text-sm font-bold">{completionPercentage}%</span>
+            </div>
+            <div className="w-full bg-white/30 rounded-full h-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-400 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${completionPercentage}%` }}
+              />
+            </div>
+            <div className="mt-2 text-xs text-white/80">
+              {completedGoalsCount} of {totalGoalsCount} goals completed
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* View Toggle with Animation */}
       <div className="bg-white rounded-xl p-2 shadow-lg flex gap-2">
         <button
@@ -950,6 +990,17 @@ const VisionBoardTab = ({ user }) => {
           )}
         </>
       )}
+
+      {/* Motivational Quote */}
+      <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-4 shadow-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="text-purple-600" size={20} />
+          <h3 className="font-semibold text-purple-800">Daily Motivation</h3>
+        </div>
+        <p className="text-sm text-gray-700 italic">
+          "A goal without a plan is just a wish. Visualize your dreams and take action every day!"
+        </p>
+      </div>
 
       {/* Add CSS for animations */}
       <style jsx>{`

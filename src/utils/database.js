@@ -5,6 +5,8 @@ import {
   query, 
   where, 
   getDocs,
+  getDoc,
+  setDoc,
   deleteDoc,
   doc,
   updateDoc,
@@ -19,7 +21,7 @@ export const dbFunctions = {
     try {
       const docRef = await addDoc(collection(db, collectionName), {
         ...data,
-        createdAt: serverTimestamp() // Firebase server timestamp
+        createdAt: serverTimestamp()
       });
       console.log('Document added with ID:', docRef.id);
       return { success: true, id: docRef.id };
@@ -55,8 +57,41 @@ export const dbFunctions = {
     }
   },
 
+  // Get a single document by ID
+  getDocument: async (collectionName, docId) => {
+    try {
+      const docRef = doc(db, collectionName, docId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return { success: true, document: { id: docSnap.id, ...docSnap.data() } };
+      } else {
+        return { success: false, error: 'Document not found' };
+      }
+    } catch (error) {
+      console.error('Error getting document:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Set/create a document with specific ID
+  setDocument: async (collectionName, docId, data) => {
+    try {
+      await setDoc(doc(db, collectionName, docId), {
+        ...data,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      console.log('Document set/updated:', docId);
+      return { success: true };
+    } catch (error) {
+      console.error('Error setting document:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Delete a document
-  delete: async (collectionName, documentId) => {
+  deleteDocument: async (collectionName, documentId) => {
     try {
       await deleteDoc(doc(db, collectionName, documentId));
       console.log('Document deleted:', documentId);

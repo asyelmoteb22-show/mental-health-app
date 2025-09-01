@@ -1,6 +1,6 @@
 // src/components/Tabs/MoodTab.jsx
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Activity, Brain, Sparkles, Flower2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Brain, Sparkles, Flower2, Trash2 } from 'lucide-react';
 import { dbFunctions } from '../../utils/database';
 import { analyzeMoodTrends } from '../../utils/moodAnalyzer';
 
@@ -45,6 +45,25 @@ const MoodTab = ({ user }) => {
       }
     } catch (error) {
       console.error('Error loading moods:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    const deleteMood = async (moodId) => {
+    try {
+      setLoading(true);
+      const result = await dbFunctions.deleteDocument('moods', moodId);
+
+      if (result.success) {
+        console.log('Mood deleted successfully');
+        // Refresh the mood list
+        loadMoods();
+      } else {
+        console.error('Error deleting mood:', result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting mood:', error);
     } finally {
       setLoading(false);
     }
@@ -373,6 +392,13 @@ const MoodTab = ({ user }) => {
                       </div>
                     </div>
                   )}
+                   <button
+                    onClick={() => deleteMood(mood.id)}
+                    className="text-gray-500 hover:text-red-600 transition-colors duration-200"
+                    aria-label="Delete mood entry"
+                  >
+                    <Trash2 size={20} />
+                  </button>
                 </div>
               );
             })}

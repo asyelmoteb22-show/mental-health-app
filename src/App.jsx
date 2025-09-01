@@ -8,7 +8,9 @@ import {
   Book, 
   Eye,
   CheckSquare, 
-  Bell
+  Bell,
+  Target,
+  Flame
 } from 'lucide-react';
 
 // Import components
@@ -16,6 +18,7 @@ import Auth from './components/Auth/Auth';
 import Header from './components/Layout/Header';
 import BottomNav from './components/Layout/BottomNav';
 import QuoteOfDay from './components/Layout/QuoteOfDay';
+import StreakCounter from './components/Layout/StreakCounter';
 
 // Import tab components
 import JournalTab from './components/Tabs/JournalTab';
@@ -26,6 +29,7 @@ import MeditateTab from './components/Tabs/MeditateTab';
 import BooksTab from './components/Tabs/BooksTab';
 import RemindersTab from './components/Tabs/RemindersTab';
 import PerspectiveTab from './components/Tabs/PerspectiveTab';
+import VisionBoardTab from './components/Tabs/VisionBoardTab';
 
 // Import utilities
 import { authFunctions } from './utils/auth';
@@ -35,6 +39,7 @@ const App = () => {
   const [activeTab, setActiveTab] = useState('journal');
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showStreak, setShowStreak] = useState(true);
 
   // Define tabs configuration
   const tabs = [
@@ -42,6 +47,7 @@ const App = () => {
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'mood', label: 'Mood', icon: Smile },
+    { id: 'vision', label: 'Vision', icon: Target },
     { id: 'meditate', label: 'Meditate', icon: Brain },
     { id: 'books', label: 'Books', icon: Book },
     { id: 'todo', label: 'To-Do', icon: CheckSquare },
@@ -108,6 +114,24 @@ const App = () => {
         onLogout={handleLogout}
       />
 
+      {/* Streak Counter Popup */}
+      <StreakCounter 
+        user={user} 
+        show={showStreak} 
+        onClose={() => setShowStreak(false)} 
+      />
+
+      {/* Floating Streak Button (when popup is closed) */}
+      {!showStreak && (
+        <button
+          onClick={() => setShowStreak(true)}
+          className="fixed top-20 right-4 bg-gradient-to-r from-orange-400 to-red-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-30"
+          aria-label="Show streak counter"
+        >
+          <Flame size={20} />
+        </button>
+      )}
+
       {/* Quote of the Day Component */}
       <QuoteOfDay />
 
@@ -121,6 +145,7 @@ const App = () => {
         {activeTab === 'todo' && <TodoTab user={user} />}
         {activeTab === 'reminders' && <RemindersTab user={user} />}
         {activeTab === 'perspective' && <PerspectiveTab user={user} />}
+        {activeTab === 'vision' && <VisionBoardTab user={user} />}
       </div>
 
       {/* Bottom Navigation Component (Mobile only) */}

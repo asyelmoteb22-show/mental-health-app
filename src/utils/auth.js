@@ -16,7 +16,25 @@ export const authFunctions = {
       return { success: true, user: userCredential.user };
     } catch (error) {
       console.error('Sign in error:', error);
-      return { success: false, error: error.message };
+      //return { success: false, error: error.message };
+        let errorMessage = 'An error occurred.';
+        switch (error.code) {
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address.';
+            break;
+          case 'auth/user-disabled':
+            errorMessage = 'This user account has been disabled.';
+            break;
+          case 'auth/user-not-found':
+            errorMessage = 'User not found.';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Incorrect password.';
+            break;
+          default:
+            errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
     }
   },
 

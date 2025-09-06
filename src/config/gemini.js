@@ -41,7 +41,7 @@ Important guidelines:
 - Never diagnose or prescribe medications
 - If someone is in crisis, encourage them to seek professional help immediately
 - Focus on emotional support and practical wellness tips
-- Keep responses concise but meaningful (2-3 paragraphs max)
+- Keep responses concise but meaningful (1-2 paragraphs max) and initially start with a single paragraph then according to the user response, you can expand if needed.
 - Use a conversational, friendly tone
 - Ask thoughtful follow-up questions when appropriate
 
@@ -71,7 +71,7 @@ export const testGeminiConnection = async () => {
 };
 
 // List available models (for debugging)
-export const listAvailableModels = async () => {
+/*export const listAvailableModels = async () => {
   try {
     const models = await genAI.listModels();
     console.log('Available models:');
@@ -81,4 +81,10 @@ export const listAvailableModels = async () => {
   } catch (error) {
     console.error('Error listing models:', error);
   }
-};
+};*/
+
+/*Connecting to Gemini: The code first connects to the Gemini API using your API key. This is like establishing a phone line to the Gemini servers.
+Choosing a Model: It then selects a specific Gemini model (like gemini-1.5-flash) to use. Think of this as choosing a specific expert to talk to. Each model has different strengths and capabilities.
+Setting the Stage: The SYSTEM_PROMPT is like giving the Gemini model a background and instructions on how to behave. It tells the model what kind of personality to adopt and what its goals are.
+Sending and Receiving Information: When you use the chatModel to generate content, your application sends a prompt to the Gemini API. The API processes the prompt using the chosen model and its system prompt, and then sends back a response.
+Helper Functions: The testGeminiConnection and listAvailableModels functions are like utility tools for checking if the connection is working and exploring the available models.*/

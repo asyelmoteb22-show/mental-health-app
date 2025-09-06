@@ -12,6 +12,8 @@ import {
   Target,
   Flame
 } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify'; // Import toast
+import 'react-toastify/dist/ReactToastify.css';
 
 // Import components
 import Auth from './components/Auth/Auth';
@@ -36,7 +38,7 @@ import { authFunctions } from './utils/auth';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('journal');
+  const [activeTab, setActiveTab] = useState('todo');
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showStreak, setShowStreak] = useState(true);
@@ -78,13 +80,22 @@ const App = () => {
   const handleLogout = async () => {
     const result = await authFunctions.signOut();
     if (!result.success) {
-      alert('Error signing out. Please try again.');
+      toast.error('Error signing out. Please try again.', { // Use toast
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light"
+      });
     }
   };
 
   const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    setMobileMenuOpen(false);
+    setActiveTab(tabId); //This line updates the activeTab state with the ID of the selected tab.
+    setMobileMenuOpen(false); //This line closes the mobile menu (if it's open) when a tab is selected.
   };
 
   // Loading state
@@ -128,7 +139,7 @@ const App = () => {
           className="fixed top-20 right-4 bg-gradient-to-r from-orange-400 to-red-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-30"
           aria-label="Show streak counter"
         >
-          <Flame size={20} />
+          <Flame size={window.innerWidth < 640 ? 30 : 50} />
         </button>
       )}
 
@@ -153,6 +164,19 @@ const App = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         tabs={tabs}
+      />
+
+      <ToastContainer // Add ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
       />
     </div>
   );
